@@ -46,7 +46,7 @@ Each skill is a `SKILL.md` with YAML frontmatter — `name`, `description`, trig
 | Skill | Triggers (sample) | Tools it grants |
 | --- | --- | --- |
 | [`onsager-design-workflow`](skills/onsager-design-workflow/SKILL.md) | "design a workflow", "create an automation", "build a pipeline" | `propose_workflow`, `edit_workflow`, `list_workflows`, `schedule_workflow` |
-| [`onsager-run-workflow`](skills/onsager-run-workflow/SKILL.md) | "run this workflow", "execute the pipeline", "trigger a run" | `run_workflow`, `list_workflows`, `inspect_run` |
+| [`onsager-run-workflow`](skills/onsager-run-workflow/SKILL.md) | "run this workflow", "execute the pipeline", "trigger a run" | `run_workflow`, `list_workflows`, `list_runs`, `inspect_run` |
 | [`onsager-triage-run`](skills/onsager-triage-run/SKILL.md) | "the run failed", "diagnose this", "why did it fail" | `inspect_run`, `get_stage_logs`, `propose_remediation`, `cancel_run` |
 | [`onsager-explore-artifacts`](skills/onsager-explore-artifacts/SKILL.md) | "show me the artifacts", "what did this run produce" | `get_artifact`, `list_runs` |
 
