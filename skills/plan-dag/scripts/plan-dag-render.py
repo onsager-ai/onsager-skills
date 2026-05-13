@@ -115,8 +115,11 @@ def validate(ir):
     return errors
 
 
-def render_dot(ir):
-    lines = ["digraph plan {", "  rankdir=TB;", "  node [shape=box];", ""]
+def render_dot(ir, extra_graph_attrs=()):
+    lines = ["digraph plan {", "  rankdir=TB;"]
+    for attr in extra_graph_attrs:
+        lines.append(f"  {attr};")
+    lines += ["  node [shape=box];", ""]
     for n in ir["nodes"]:
         nid = str(n["id"])
         marker = STATUS_MARKER[n.get("status", "open")]
@@ -153,10 +156,7 @@ def render_mermaid(ir):
 
 def render_dot_ortho(ir):
     """Like render_dot but with rectilinear edge routing for grid rendering."""
-    return render_dot(ir).replace(
-        "digraph plan {\n  rankdir=TB;",
-        "digraph plan {\n  rankdir=TB;\n  splines=ortho;",
-    )
+    return render_dot(ir, extra_graph_attrs=("splines=ortho",))
 
 
 _TB_XS = 14.0
@@ -213,6 +213,8 @@ def render_tb_boxart(ir):
         )
     except FileNotFoundError:
         sys.exit("`dot` not on PATH. Install graphviz (e.g. apt install graphviz).")
+    except subprocess.TimeoutExpired:
+        sys.exit("`dot -Tplain` timed out after 10s. Try a smaller IR, or --as=mermaid.")
     if res.returncode != 0:
         sys.stderr.write(res.stderr)
         sys.exit(res.returncode)
@@ -338,6 +340,8 @@ def render_via_graph_easy(dot, mode):
         )
     except FileNotFoundError:
         sys.exit("graph-easy not on PATH. Install: cpan -T -i Graph::Easy")
+    except subprocess.TimeoutExpired:
+        sys.exit("`graph-easy` timed out after 10s. Try a smaller IR.")
     if res.returncode != 0:
         sys.stderr.write(res.stderr)
         sys.exit(res.returncode)
