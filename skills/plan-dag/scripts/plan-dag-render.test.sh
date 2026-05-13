@@ -29,7 +29,7 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 echo "happy.json"
-for tgt in boxart ascii mermaid; do
+for tgt in tb boxart ascii mermaid; do
     "$SCRIPT" "$FIX/happy.json" --as="$tgt" > "$tmp/happy.$tgt" 2>"$tmp/happy.$tgt.err"
     rc=$?
     if [ "$rc" -ne 0 ]; then
@@ -42,7 +42,7 @@ for tgt in boxart ascii mermaid; do
 done
 
 echo "wide.json"
-for tgt in boxart ascii mermaid; do
+for tgt in tb boxart ascii mermaid; do
     "$SCRIPT" "$FIX/wide.json" --as="$tgt" > "$tmp/wide.$tgt" 2>"$tmp/wide.$tgt.err"
     rc=$?
     if [ "$rc" -ne 0 ]; then
@@ -79,7 +79,7 @@ for token in 'duplicate node id' 'invalid status' 'missing label' \
 done
 
 echo "stdin mode"
-for tgt in boxart ascii mermaid; do
+for tgt in tb boxart ascii mermaid; do
     cat "$FIX/happy.json" | "$SCRIPT" - --as="$tgt" > "$tmp/stdin.$tgt" 2>/dev/null
     rc=$?
     if [ "$rc" -ne 0 ]; then
