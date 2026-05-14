@@ -35,7 +35,7 @@ The Onsager MCP skills call the portal MCP server. You need:
 - A Personal Access Token with workspace access. Create one in the dashboard at **Settings → Tokens**.
 - Your MCP client configured to point at `<portal-url>/mcp/messages` with the PAT in the `Authorization: Bearer <token>` header.
 
-`plan-dag` has no Onsager dependency; it only needs `graph-easy` on PATH for the boxart/ascii render targets (`cpan -T -i Graph::Easy`, or `apt install libgraph-easy-perl` on Debian/Ubuntu).
+`plan-dag` has no Onsager dependency; the default renderer needs `dot` (graphviz) on PATH (`apt install graphviz`, or `brew install graphviz`). `--as=ascii` and `--as=dot` have no external dependencies — ASCII is also selected automatically if `dot` is missing.
 
 ## Skills
 
