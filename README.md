@@ -55,6 +55,7 @@ Each skill is a `SKILL.md` with YAML frontmatter — `name`, `description`, trig
 | Skill | Triggers (sample) | Notes |
 | --- | --- | --- |
 | [`plan-dag`](skills/plan-dag/SKILL.md) | "plan as dag", "what's blocking what", "critical path", "what's left for #N" | Renders issues/sub-issues/PRs as a monospace dependency DAG. Repo-agnostic; works against any GitHub-backed tracker via the GitHub MCP tools. Scripts and fixtures encapsulated in `skills/plan-dag/`. |
+| [`issue-spec`](skills/issue-spec/SKILL.md) | "create a spec", "write a spec issue", "spec this feature", "spec this" | Creates lean-spec style GitHub issues as specs for human-AI aligned implementation. Methodology only — area taxonomies, custom body sections (Provider impact / Schema impact / Reach), and sister-skill names are overlaid by each consumer repo's `CLAUDE.md` and its `*-dev-process` / `*-pre-push` / `*-pr-lifecycle` sister skills. Used today by `codervisor/lean-spec`, `onsager-ai/onsager`, and `onsager-ai/duhem`. |
 
 ### How the Onsager skills compose
 
