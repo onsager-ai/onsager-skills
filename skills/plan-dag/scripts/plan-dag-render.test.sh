@@ -55,11 +55,11 @@ trap 'rm -rf "$tmp"' EXIT
 
 echo "happy.json"
 run_and_compare "happy default (tb)"  "$FIX/happy.json" tb
-run_and_compare "happy --as=tree"     "$FIX/happy.json" tree --as=tree
+run_and_compare "happy --as=ascii"    "$FIX/happy.json" ascii --as=ascii
 
 echo "wide.json"
 run_and_compare "wide default (tb)"   "$FIX/wide.json"  tb
-run_and_compare "wide --as=tree"      "$FIX/wide.json"  tree --as=tree
+run_and_compare "wide --as=ascii"     "$FIX/wide.json"  ascii --as=ascii
 
 echo "bad.json (must fail validation)"
 "$SCRIPT" "$FIX/bad.json" > "$tmp/bad.out" 2>"$tmp/bad.err"
@@ -104,7 +104,7 @@ else
 fi
 
 echo "stdin mode"
-for tgt in tb tree; do
+for tgt in tb ascii; do
     if [ "$tgt" = "tb" ]; then
         cat "$FIX/happy.json" | "$SCRIPT" - > "$tmp/stdin.$tgt" 2>/dev/null
     else
@@ -119,7 +119,7 @@ for tgt in tb tree; do
     assert_eq "stdin $tgt matches file-arg" "$tmp/stdin.$tgt" "$EXP/happy.$tgt"
 done
 
-echo "auto-fallback (dot not on PATH → --as=tree)"
+echo "auto-fallback (dot not on PATH → --as=ascii)"
 py3="$(command -v python3)"
 PATH="" "$py3" "$SCRIPT" "$FIX/happy.json" > "$tmp/fallback.out" 2>"$tmp/fallback.err"
 rc=$?
@@ -127,14 +127,14 @@ if [ "$rc" -ne 0 ]; then
     fail=$((fail + 1))
     printf '  FAIL fallback exited %d\n' "$rc"
     sed 's/^/    /' < "$tmp/fallback.err"
-elif ! grep -q 'falling back to --as=tree' "$tmp/fallback.err"; then
+elif ! grep -q 'falling back to --as=ascii' "$tmp/fallback.err"; then
     fail=$((fail + 1))
     printf '  FAIL fallback: stderr missing fallback note\n'
     sed 's/^/    /' < "$tmp/fallback.err"
 else
     pass=$((pass + 1))
     printf '  ok  fallback emits stderr note\n'
-    assert_eq "fallback output matches --as=tree golden" "$tmp/fallback.out" "$EXP/happy.tree"
+    assert_eq "fallback output matches --as=ascii golden" "$tmp/fallback.out" "$EXP/happy.ascii"
 fi
 
 echo

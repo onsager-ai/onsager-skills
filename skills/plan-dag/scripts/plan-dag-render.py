@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""plan-dag-render — JSON DAG IR → graphviz box-drawing / Unicode tree / DOT."""
+"""plan-dag-render — JSON DAG IR → graphviz box-drawing / raw ASCII tree / DOT."""
 
 import argparse
 import json
@@ -12,6 +12,7 @@ from collections import deque
 from pathlib import Path
 
 STATUS_MARKER = {"done": " ✓", "in_progress": " …", "open": ""}
+STATUS_WORD = {"done": "done", "in_progress": "wip", "open": "open"}
 VALID_STATUS = set(STATUS_MARKER.keys())
 VALID_SOURCES = {"sub-issue", "depends-on", "pr-link", "closes", "part-of"}
 FORBIDDEN_LABEL_CHARS = ('"', "\\", "[", "]", "\n", "\r")
@@ -339,13 +340,11 @@ def render_tb_boxart(ir):
     )
 
 
-def render_tree(ir):
-    """Render the IR as a Unicode box-drawing tree plus cross-edges and critical path.
+def render_ascii(ir):
+    """Render the IR as a pure-ASCII indented tree plus cross-edges and critical path.
 
     Tree shape: each non-root node hangs off the predecessor that lies on its longest
     path. Remaining edges are listed under `Cross-edges:`. Critical path printed last.
-    Uses ├── └── │ tree glyphs (same family as the graphviz target) so output stays
-    monospace-safe without a graphviz dependency.
     """
     nodes_by_id = {str(n["id"]): n for n in ir["nodes"]}
     node_order = [str(n["id"]) for n in ir["nodes"]]
@@ -425,25 +424,20 @@ def render_tree(ir):
         if nid == "close":
             return f"close #{close_id}"
         n = nodes_by_id[nid]
-        marker = STATUS_MARKER[n.get("status", "open")]
-        return f"#{nid} {n['label']}{marker}"
+        return f"#{nid} {n['label']} [{STATUS_WORD[n.get('status', 'open')]}]"
 
-    def walk(nid, prefix, is_last, acc):
-        if is_last is None:
+    def walk(nid, level, acc):
+        if level == 0:
             acc.append(fmt(nid))
-            child_prefix = ""
         else:
-            connector = "└── " if is_last else "├── "
-            acc.append(f"{prefix}{connector}{fmt(nid)}")
-            child_prefix = prefix + ("    " if is_last else "│   ")
-        children = tree_children[nid]
-        for i, child in enumerate(children):
-            walk(child, child_prefix, i == len(children) - 1, acc)
+            acc.append(f"{'     ' * (level - 1)}  +- {fmt(nid)}")
+        for child in tree_children[nid]:
+            walk(child, level + 1, acc)
 
     chunks = []
     for root in roots:
         acc = []
-        walk(root, "", None, acc)
+        walk(root, 0, acc)
         chunks.append("\n".join(acc))
     out = "\n\n".join(chunks)
 
@@ -452,11 +446,11 @@ def render_tree(ir):
         for u, v, src in cross_edges:
             ulab = "close" if u == "close" else f"#{u}"
             vlab = "close" if v == "close" else f"#{v}"
-            ce_lines.append(f"  {ulab} → {vlab} ({src})")
+            ce_lines.append(f"  {ulab} -> {vlab} ({src})")
         out += "\n\n" + "\n".join(ce_lines)
 
     if cp_strs:
-        path = " → ".join("close" if n == "close" else f"#{n}" for n in cp_strs)
+        path = " -> ".join("close" if n == "close" else f"#{n}" for n in cp_strs)
         out += f"\n\nCritical path: {path}"
 
     return out
@@ -467,10 +461,10 @@ def main():
     ap.add_argument("ir", help="path to JSON IR, or '-' for stdin")
     ap.add_argument(
         "--as", dest="target", default=None,
-        choices=["tree", "dot"],
+        choices=["ascii", "dot"],
         help="output target. Default: top-to-bottom box-drawing via graphviz "
-             "(requires `dot`; auto-falls back to --as=tree when missing). "
-             "--as=tree: Unicode box-drawing tree, no external deps. "
+             "(requires `dot`; auto-falls back to --as=ascii when missing). "
+             "--as=ascii: pure-ASCII tree, no external deps. "
              "--as=dot: raw DOT source.",
     )
     args = ap.parse_args()
@@ -492,15 +486,15 @@ def main():
     if target is None:
         if shutil.which("dot") is None:
             sys.stderr.write(
-                "plan-dag-render: `dot` not on PATH; falling back to --as=tree. "
+                "plan-dag-render: `dot` not on PATH; falling back to --as=ascii. "
                 "Install graphviz for the default box-drawing renderer.\n"
             )
-            target = "tree"
+            target = "ascii"
 
     if target == "dot":
         print(render_dot(ir))
-    elif target == "tree":
-        print(render_tree(ir))
+    elif target == "ascii":
+        print(render_ascii(ir))
     else:
         print(render_tb_boxart(ir))
         cp = ir.get("critical_path")

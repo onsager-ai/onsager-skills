@@ -29,7 +29,7 @@ Skip when:
 |-----------|----------|
 | **Scope** | Inferred — current branch's spec, the umbrella the user named, or the open issues just surveyed. |
 | **Granularity** | Spec-level; drop to sub-issue / PR level for an umbrella that has fanned out. |
-| **Output format** | Monospace text (Unicode box-drawing) laid out top-to-bottom via graphviz (default). `--as=tree` for a Unicode tree with no external deps; `--as=dot` for raw DOT. |
+| **Output format** | Monospace text (Unicode box-drawing) laid out top-to-bottom via graphviz (default). `--as=ascii` for a pure-ASCII tree; `--as=dot` for raw DOT. |
 
 ## Workflow
 
@@ -99,12 +99,12 @@ Emit a JSON IR matching the schema below, then invoke the renderer. **Do not han
 }
 ```
 
-- `status` ∈ `{done, in_progress, open}`; defaults to `open`. Status markers (`✓`, `…`, _none_) are added by the renderer in both render targets — do not embed them in `label`.
+- `status` ∈ `{done, in_progress, open}`; defaults to `open`. Status markers (`✓`, `…` in box-drawing mode; `[done]` / `[wip]` / `[open]` in ASCII mode) are added by the renderer — do not embed them in `label`.
 - `edges[].source` ∈ `{sub-issue, depends-on, pr-link, closes, part-of}`, required. This is the citation rule from Conventions made enforceable: no edge without a documented source on GitHub.
 - Every `from` / `to` resolves to a declared node id, or the literal `"close"`.
 - `critical_path` is optional; renderer appends it as a callout under the box-drawing and ASCII targets.
 
-**Invocation.** Default emits top-to-bottom box-drawing via graphviz (requires `dot` on PATH — `apt install graphviz`, or `brew install graphviz`) and is the right choice for normal use. `--as=tree` produces an indented Unicode tree (same `├── └── │` family as the default) with no external dependency — used explicitly for restricted terminals, and selected automatically (with a stderr note) when `dot` is missing. `--as=dot` emits raw DOT source for piping or debugging.
+**Invocation.** Default emits top-to-bottom box-drawing via graphviz (requires `dot` on PATH — `apt install graphviz`, or `brew install graphviz`) and is the right choice for normal use. `--as=ascii` produces a pure-ASCII indented tree with no external dependency — used explicitly for restricted terminals, and selected automatically (with a stderr note) when `dot` is missing. `--as=dot` emits raw DOT source for piping or debugging.
 
 The renderer ships inside the skill. Use the path that matches how the skill was installed:
 
@@ -120,8 +120,8 @@ SCRIPT=.claude/skills/plan-dag/scripts/plan-dag-render.py   # project install
 # default: top-to-bottom box-drawing via graphviz
 "$SCRIPT" /tmp/plan.json
 
-# Unicode tree (no external deps; auto-selected when `dot` is missing)
-"$SCRIPT" /tmp/plan.json --as=tree
+# pure ASCII tree (no external deps; auto-selected when `dot` is missing)
+"$SCRIPT" /tmp/plan.json --as=ascii
 
 # raw DOT for piping / debugging
 "$SCRIPT" /tmp/plan.json --as=dot
