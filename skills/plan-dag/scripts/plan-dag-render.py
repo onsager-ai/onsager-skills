@@ -596,10 +596,10 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   body {{
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
     margin: 2rem auto; max-width: 900px; padding: 0 1rem;
-    color: #212529;
+    background: #ffffff; color: #212529;
   }}
   h1 {{ font-size: 1.1rem; font-weight: 600; margin: 0 0 1rem; color: #495057; }}
-  .dag {{ border: 1px solid #dee2e6; border-radius: 6px; padding: 1rem; background: #fff; }}
+  .dag {{ border: 1px solid #dee2e6; border-radius: 6px; padding: 1rem; background: #ffffff; }}
   .dag svg {{ max-width: 100%; height: auto; display: block; margin: 0 auto; }}
   .legend {{ display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem;
              margin: 1rem 0; color: #495057; }}
@@ -613,6 +613,21 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   .cp {{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
          font-size: 0.85rem; color: #495057; margin-top: 1rem; }}
   .cp b {{ color: #212529; }}
+  /* Dark mode. Status tile fills stay bright enough on the dark card that
+     graphviz's default-black tile text remains readable, so we only swap
+     page chrome, the card bg, the SVG's white background polygon, and the
+     muted-grey edge lines (which would otherwise vanish on dark). */
+  @media (prefers-color-scheme: dark) {{
+    body {{ background: #1a1a1a; color: #e9ecef; }}
+    h1 {{ color: #adb5bd; }}
+    .dag {{ background: #2a2a2a; border-color: #404040; }}
+    .dag svg polygon[fill="white"] {{ fill: transparent; }}
+    .dag svg path[stroke="#6c757d"] {{ stroke: #adb5bd; }}
+    .dag svg polygon[fill="#6c757d"] {{ fill: #adb5bd; stroke: #adb5bd; }}
+    .legend {{ color: #adb5bd; }}
+    .cp {{ color: #adb5bd; }}
+    .cp b {{ color: #e9ecef; }}
+  }}
 </style>
 </head>
 <body>

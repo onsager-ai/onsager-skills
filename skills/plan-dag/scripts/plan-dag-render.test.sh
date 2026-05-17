@@ -244,7 +244,8 @@ else
     for token in '<!DOCTYPE html>' '<title>plan-dag — close #300</title>' \
                  '<div class="legend">' 'available next' 'blocked' \
                  'class="dag"' '<svg ' '</svg>' \
-                 'Critical path:' '#301 → #305 → #306 → #307 → close'; do
+                 'Critical path:' '#301 → #305 → #306 → #307 → close' \
+                 '@media (prefers-color-scheme: dark)'; do
         if ! grep -qF -- "$token" "$tmp/happy.html"; then
             fail=$((fail + 1))
             printf '  FAIL --as=html missing token: %s\n' "$token"
