@@ -253,7 +253,6 @@ else
     html_ok=1
     for token in '<!DOCTYPE html>' '<title>plan-dag — close #300</title>' \
                  'name="viewport"' \
-                 '<div class="legend">' 'available next' 'blocked' \
                  'class="dag"' '<svg ' '</svg>' \
                  'Critical path:' '#301 → #305 → #306 → #307 → close' \
                  '@media (prefers-color-scheme: dark)'; do
@@ -265,7 +264,15 @@ else
     done
     if [ "$html_ok" -eq 1 ]; then
         pass=$((pass + 1))
-        printf '  ok  --as=html emits self-contained page with legend + critical-path footer\n'
+        printf '  ok  --as=html emits self-contained page with critical-path footer\n'
+    fi
+    # Legend is intentionally not part of the HTML output — assert it stays gone.
+    if grep -qE 'class="legend"|>blocked<|>in-progress<|>available next<' "$tmp/happy.html"; then
+        fail=$((fail + 1))
+        printf '  FAIL --as=html unexpectedly emitted legend markup\n'
+    else
+        pass=$((pass + 1))
+        printf '  ok  --as=html omits legend (status colors + emoji are self-explanatory)\n'
     fi
 fi
 # --as=html --out writes to a file.
@@ -296,20 +303,6 @@ else
     pass=$((pass + 1))
     printf '  ok  --as=html omits footer when no critical_path declared\n'
 fi
-# Negative legend assertion: the closeless IR has no in_progress nodes and
-# no blocked nodes (the open #2 has its only pred #1 done, so it's
-# available-next, not blocked). The legend must omit those chips.
-if grep -q 'in-progress' "$tmp/closeless.html"; then
-    fail=$((fail + 1))
-    printf '  FAIL --as=html legend includes in-progress chip when no wip nodes present\n'
-elif grep -qE 'class="blkd"|>blocked<' "$tmp/closeless.html"; then
-    fail=$((fail + 1))
-    printf '  FAIL --as=html legend includes blocked chip when no blocked nodes present\n'
-else
-    pass=$((pass + 1))
-    printf '  ok  --as=html legend omits chips for absent states\n'
-fi
-
 echo "--as=dot --out smoke"
 "$SCRIPT" "$FIX/happy.json" --as=dot --out "$tmp/happy.out.dot" >/dev/null 2>&1
 if [ -s "$tmp/happy.out.dot" ] && grep -q '^digraph plan' "$tmp/happy.out.dot"; then

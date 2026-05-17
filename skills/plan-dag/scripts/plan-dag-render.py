@@ -603,15 +603,6 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   h1 {{ font-size: 1.1rem; font-weight: 600; margin: 0 0 1rem; color: #495057; }}
   .dag {{ border: 1px solid #dee2e6; border-radius: 6px; padding: 1rem; background: #ffffff; }}
   .dag svg {{ max-width: 100%; height: auto; display: block; margin: 0 auto; }}
-  .legend {{ display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem;
-             margin: 1rem 0; color: #495057; }}
-  .legend span {{ display: inline-flex; align-items: center; gap: 0.3rem; }}
-  .legend i {{ width: 12px; height: 12px; border-radius: 3px;
-               display: inline-block; border: 1px solid; }}
-  .done {{ background: #d4edda; border-color: #52a566; }}
-  .wip  {{ background: #fff3cd; border-color: #d39e00; }}
-  .next {{ background: #cfe2ff; border-color: #0d6efd; }}
-  .blkd {{ background: #f8f9fa; border-color: #adb5bd; border-style: dashed; }}
   .cp {{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
          font-size: 0.85rem; color: #495057; margin-top: 1rem; }}
   .cp b {{ color: #212529; }}
@@ -626,7 +617,6 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     .dag svg polygon[fill="white"] {{ fill: transparent; }}
     .dag svg path[stroke="#6c757d"] {{ stroke: #adb5bd; }}
     .dag svg polygon[fill="#6c757d"] {{ fill: #adb5bd; stroke: #adb5bd; }}
-    .legend {{ color: #adb5bd; }}
     .cp {{ color: #adb5bd; }}
     .cp b {{ color: #e9ecef; }}
   }}
@@ -634,7 +624,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body>
 <h1>{heading}</h1>
-{legend}<div class="dag">
+<div class="dag">
 {svg}</div>
 {footer}</body>
 </html>
@@ -663,27 +653,6 @@ def render_html(ir, emoji=True):
         title_text = "plan-dag"
     title = html_escape(title_text)
 
-    statuses_present = {n.get("status", "open") for n in ir["nodes"]}
-    available = _available_next(ir)
-    has_available = bool(available)
-    has_blocked = any(
-        n.get("status", "open") == "open" and str(n["id"]) not in available
-        for n in ir["nodes"]
-    )
-    legend_items = []
-    if "done" in statuses_present:
-        legend_items.append('<span><i class="done"></i> done</span>')
-    if "in_progress" in statuses_present:
-        legend_items.append('<span><i class="wip"></i> in-progress</span>')
-    if has_available:
-        legend_items.append('<span><i class="next"></i> available next</span>')
-    if has_blocked:
-        legend_items.append('<span><i class="blkd"></i> blocked</span>')
-    if legend_items:
-        legend = '<div class="legend">\n  ' + "\n  ".join(legend_items) + "\n</div>\n"
-    else:
-        legend = ""
-
     cp = ir.get("critical_path")
     if cp:
         path = " → ".join(
@@ -694,7 +663,7 @@ def render_html(ir, emoji=True):
         footer = ""
 
     return _HTML_TEMPLATE.format(
-        title=title, heading=title, legend=legend, svg=svg, footer=footer,
+        title=title, heading=title, svg=svg, footer=footer,
     )
 
 
