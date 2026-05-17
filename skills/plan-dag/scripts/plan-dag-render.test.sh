@@ -213,6 +213,16 @@ else
     pass=$((pass + 1))
     printf '  ok  --as=svg emits styled SVG with status fills + emoji\n'
 fi
+# --as=svg strips the XML prolog so the output is inline-paste-safe.
+# First line must start with `<svg` (graphviz comment + `<svg` element),
+# never `<?xml` or `<!DOCTYPE`.
+if grep -qE '^(<\?xml|<!DOCTYPE)' "$tmp/happy.svg"; then
+    fail=$((fail + 1))
+    printf '  FAIL --as=svg still contains XML prolog / DOCTYPE (should be stripped for inline use)\n'
+else
+    pass=$((pass + 1))
+    printf '  ok  --as=svg strips XML prolog / DOCTYPE (inline-safe)\n'
+fi
 # --as=svg --out writes to a file.
 "$SCRIPT" "$FIX/happy.json" --as=svg --out "$tmp/happy.out.svg" >/dev/null 2>&1
 if [ -s "$tmp/happy.out.svg" ] && grep -q '<svg ' "$tmp/happy.out.svg"; then
@@ -242,6 +252,7 @@ if [ "$rc" -ne 0 ]; then
 else
     html_ok=1
     for token in '<!DOCTYPE html>' '<title>plan-dag — close #300</title>' \
+                 'name="viewport"' \
                  '<div class="legend">' 'available next' 'blocked' \
                  'class="dag"' '<svg ' '</svg>' \
                  'Critical path:' '#301 → #305 → #306 → #307 → close' \
@@ -284,6 +295,29 @@ if grep -q 'Critical path:' "$tmp/closeless.html"; then
 else
     pass=$((pass + 1))
     printf '  ok  --as=html omits footer when no critical_path declared\n'
+fi
+# Negative legend assertion: the closeless IR has no in_progress nodes and
+# no blocked nodes (the open #2 has its only pred #1 done, so it's
+# available-next, not blocked). The legend must omit those chips.
+if grep -q 'in-progress' "$tmp/closeless.html"; then
+    fail=$((fail + 1))
+    printf '  FAIL --as=html legend includes in-progress chip when no wip nodes present\n'
+elif grep -qE 'class="blkd"|>blocked<' "$tmp/closeless.html"; then
+    fail=$((fail + 1))
+    printf '  FAIL --as=html legend includes blocked chip when no blocked nodes present\n'
+else
+    pass=$((pass + 1))
+    printf '  ok  --as=html legend omits chips for absent states\n'
+fi
+
+echo "--as=dot --out smoke"
+"$SCRIPT" "$FIX/happy.json" --as=dot --out "$tmp/happy.out.dot" >/dev/null 2>&1
+if [ -s "$tmp/happy.out.dot" ] && grep -q '^digraph plan' "$tmp/happy.out.dot"; then
+    pass=$((pass + 1))
+    printf '  ok  --as=dot --out writes to file\n'
+else
+    fail=$((fail + 1))
+    printf '  FAIL --as=dot --out did not write valid DOT to file\n'
 fi
 
 echo "--as=png smoke (skipped without node + Playwright Chromium)"

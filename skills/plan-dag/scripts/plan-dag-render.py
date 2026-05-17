@@ -569,6 +569,7 @@ def _dot_to_svg(ir, emoji=True):
         svg_res = subprocess.run(
             ["dot", "-Tsvg"], input=dot_src,
             capture_output=True, text=True, timeout=10,
+            encoding="utf-8",
         )
     except subprocess.TimeoutExpired:
         sys.exit("`dot -Tsvg` timed out after 10s.")
@@ -579,17 +580,18 @@ def _dot_to_svg(ir, emoji=True):
 
 
 def render_svg(ir, emoji=True):
-    """Render the IR as inline SVG (the same SVG the PNG path consumes).
-
-    Scalable, embeddable in markdown / GitHub / HTML; typically a few KB.
+    """Render the IR as inline SVG: graphviz output with the XML decl +
+    DOCTYPE stripped, so the result pastes cleanly into HTML / markdown /
+    GitHub without producing invalid markup. Scalable, embeddable, a few KB.
     """
-    return _dot_to_svg(ir, emoji=emoji)
+    return _strip_svg_prolog(_dot_to_svg(ir, emoji=emoji))
 
 
 _HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <style>
   :root {{ color-scheme: light dark; }}
@@ -795,8 +797,11 @@ def main():
         emoji_on = target in ("dot", "svg", "html", "png")
 
     def _emit(text):
+        # Force UTF-8 on file writes so non-UTF-8 locales don't either
+        # corrupt the output (the HTML/SVG advertise UTF-8 and contain
+        # emoji + box-drawing glyphs) or raise UnicodeEncodeError.
         if args.out:
-            Path(args.out).write_text(text)
+            Path(args.out).write_text(text, encoding="utf-8")
         else:
             print(text)
 

@@ -102,7 +102,7 @@ Emit a JSON IR matching the schema below, then invoke the renderer. **Do not han
 - `status` ∈ `{done, in_progress, open}`; defaults to `open`. Status markers (`✓`, `…` in box-drawing mode; `[done]` / `[wip]` / `[open]` in ASCII mode) are added by the renderer — do not embed them in `label`.
 - `edges[].source` ∈ `{sub-issue, depends-on, pr-link, closes, part-of}`, required. This is the citation rule from Conventions made enforceable: no edge without a documented source on GitHub.
 - Every `from` / `to` resolves to a declared node id, or the literal `"close"`.
-- `critical_path` is optional; renderer appends it as a callout under the box-drawing and ASCII targets.
+- `critical_path` is optional; renderer appends it as a callout footer under the box-drawing, ASCII, and HTML targets (and as `Critical path:` text in the ASCII output).
 
 **Invocation.** Default emits top-to-bottom box-drawing via graphviz (requires `dot` on PATH — `apt install graphviz`, or `brew install graphviz`) and is the right choice for terminal-only surfaces. `--as=html --out <path>` writes a self-contained HTML page that wraps the styled SVG with a legend (only states present in the graph) and a critical-path footer — preferred on web surfaces that render HTML inline (Claude Code on the web, claude.ai web/mobile). `--as=svg` emits the same styled SVG without the HTML chrome — useful for embedding in markdown / GitHub / external docs. Both need only `dot`. `--as=png --out <path>` rasterises the same DOT through `dot -Tsvg` and a headless Chromium screenshot at deviceScaleFactor=2 — sharper than `dot -Tpng`, but heavier (needs `dot`, `node`, and Playwright Chromium); use it on surfaces that show inline PNGs but not inline HTML. `--as=ascii` produces a pure-ASCII indented tree with no external dependency — used explicitly for restricted terminals, and selected automatically (with a stderr note) when `dot` is missing. `--as=dot` emits raw DOT source for piping or debugging.
 
@@ -118,7 +118,7 @@ Emit a JSON IR matching the schema below, then invoke the renderer. **Do not han
 
 The "available next" highlight is computed from the graph (open + every predecessor is `done`) — no IR field for it. Critical-path edges are *not* bolded: which path is "the" critical path is a caller judgement, and elevating it visually would conflate the recommendation with the graph's topology. Keep the critical path in `ir.critical_path` and let the renderer print it as a footer / let prose carry the next-pick recommendation.
 
-The text box-drawing and ASCII targets stay glyph-only (`✓` / `…` markers) because their layout math counts characters, not visual columns, and emoji are East Asian Wide. The `--emoji` flag controls whether emoji are emitted in DOT/PNG labels: `auto` (default) is on for image targets, off for text targets; `on` / `off` force it. Turn `off` if a target system lacks a color emoji font and you see tofu boxes in the PNG.
+The text box-drawing and ASCII targets stay glyph-only (`✓` / `…` markers) because their layout math counts characters, not visual columns, and emoji are East Asian Wide. The `--emoji` flag controls whether emoji are emitted in DOT / SVG / HTML / PNG labels: `auto` (default) is on for those four styled targets, off for text targets; `on` / `off` force it. Turn `off` if a target system lacks a color emoji font and you see tofu boxes in the rendered SVG / HTML / PNG.
 
 The renderer ships inside the skill. Use the path that matches how the skill was installed:
 
