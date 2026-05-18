@@ -135,10 +135,16 @@ def validate(ir):
             "edges reference the CLOSE sentinel but ir.close is missing "
             "(set ir.close to the closing issue id, e.g. 'ir.close': '300')"
         )
-    if close is not None and not isinstance(close, (str, int)):
-        errors.append(
-            f"ir.close must be a string or int, got {type(close).__name__}"
-        )
+    if close is not None:
+        if not isinstance(close, (str, int)):
+            errors.append(
+                f"ir.close must be a string or int, got {type(close).__name__}"
+            )
+        elif isinstance(close, str) and not close.strip():
+            errors.append(
+                "ir.close is an empty string; set it to the closing issue id, "
+                "or omit the key entirely"
+            )
     cp = ir.get("critical_path")
     if cp is not None:
         if not isinstance(cp, list):
@@ -242,7 +248,7 @@ def render_dot(ir, emoji=True):
             f'  "{_dot_escape(nid)}" [label="{label}", {_attrs_str(attrs)}];'
         )
 
-    if ir.get("close"):
+    if ir.get("close") is not None:
         close_text = (
             f'{_EMOJI["close"]}  close #{ir["close"]}'
             if emoji else f'close #{ir["close"]}'

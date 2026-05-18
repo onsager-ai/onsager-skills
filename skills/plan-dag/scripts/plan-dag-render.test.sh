@@ -69,7 +69,14 @@ if command -v node >/dev/null 2>&1; then
             printf '  FAIL stdin PNG exited %d\n' "$rc"
             sed 's/^/    /' < "$tmp/stdin.err"
         fi
-    elif [ -s "$tmp/stdin.png" ] && file "$tmp/stdin.png" 2>/dev/null | grep -q 'PNG image'; then
+    elif [ ! -s "$tmp/stdin.png" ]; then
+        fail=$((fail + 1))
+        printf '  FAIL stdin PNG produced empty output\n'
+    elif ! file "$tmp/stdin.png" 2>/dev/null | grep -q 'PNG image'; then
+        fail=$((fail + 1))
+        printf '  FAIL stdin output is not a PNG (file: %s)\n' \
+            "$(file "$tmp/stdin.png" 2>/dev/null || echo unknown)"
+    else
         pass=$((pass + 1))
         printf '  ok  stdin mode produces PNG\n'
     fi
@@ -269,6 +276,26 @@ elif ! grep -qF '#28 #288 different' "$tmp/pref.out"; then
 else
     pass=$((pass + 1))
     printf '  ok  own id as prefix of a longer id in label passes\n'
+fi
+
+echo "empty-string close (must fail validation)"
+# Edges can reference "close" + a falsy ir.close, but render_dot needs a
+# real close id to emit the styled sentinel — validation catches the
+# empty-string case before render does.
+empty_close='{"nodes":[{"id":"1","label":"a","status":"done"}],"edges":[{"from":"1","to":"close","source":"closes"}],"close":""}'
+echo "$empty_close" | "$SCRIPT" - --out "$tmp/empty-close.png" \
+    > "$tmp/empty-close.out" 2>"$tmp/empty-close.err"
+rc=$?
+if [ "$rc" -ne 1 ]; then
+    fail=$((fail + 1))
+    printf '  FAIL empty-string close expected exit 1, got %d\n' "$rc"
+elif ! grep -qF 'empty string' "$tmp/empty-close.err"; then
+    fail=$((fail + 1))
+    printf '  FAIL empty-string close stderr missing guidance:\n'
+    sed 's/^/    /' < "$tmp/empty-close.err"
+else
+    pass=$((pass + 1))
+    printf '  ok  empty-string ir.close rejected with guidance\n'
 fi
 
 echo "cycle.json (must fail validation with a cycle error)"
