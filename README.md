@@ -35,7 +35,7 @@ The Onsager MCP skills call the portal MCP server. You need:
 - A Personal Access Token with workspace access. Create one in the dashboard at **Settings → Tokens**.
 - Your MCP client configured to point at `<portal-url>/mcp/messages` with the PAT in the `Authorization: Bearer <token>` header.
 
-`plan-dag` has no Onsager dependency. The default renderer needs `dot` (graphviz) on PATH (`apt install graphviz`, or `brew install graphviz`); `--as=ascii` and `--as=dot` have no external dependencies, and ASCII is also selected automatically if `dot` is missing. `--as=png --out <path>` additionally needs `node` (≥18) and Playwright Chromium (`npx playwright install chromium`) — this is the preferred output on image-capable chat surfaces (Claude Code on the web, claude.ai), then sent to the user via `SendUserFile`.
+`plan-dag` has no Onsager dependency. It renders the DAG as a high-DPI PNG and sends it inline via `SendUserFile`. The renderer needs `dot` (graphviz) on PATH (`apt install graphviz`, or `brew install graphviz`) for the SVG layout step, and `node` (≥18) plus Playwright Chromium (`npm i -g playwright && npx playwright install chromium`) for the rasterisation step. PNG is the only target — earlier HTML and ASCII targets were dropped after both proved unreliable in practice (HTML doesn't render inline in chat, ASCII loses column alignment and can't carry status fills).
 
 ## Skills
 
@@ -54,7 +54,7 @@ Each skill is a `SKILL.md` with YAML frontmatter — `name`, `description`, trig
 
 | Skill | Triggers (sample) | Notes |
 | --- | --- | --- |
-| [`plan-dag`](skills/plan-dag/SKILL.md) | "plan as dag", "what's blocking what", "critical path", "what's left for #N" | Renders issues/sub-issues/PRs as a monospace dependency DAG. Repo-agnostic; works against any GitHub-backed tracker via the GitHub MCP tools. Scripts and fixtures encapsulated in `skills/plan-dag/`. |
+| [`plan-dag`](skills/plan-dag/SKILL.md) | "plan as dag", "what's blocking what", "critical path", "what's left for #N" | Renders issues/sub-issues/PRs as a high-DPI PNG dependency DAG with color-coded status and an available-next highlight. Repo-agnostic; works against any GitHub-backed tracker via the GitHub MCP tools. Scripts and fixtures encapsulated in `skills/plan-dag/`. |
 | [`issue-spec`](skills/issue-spec/SKILL.md) | "create a spec", "write a spec issue", "spec this feature", "spec this" | Creates lean-spec style GitHub issues as specs for human-AI aligned implementation. Methodology only — area taxonomies, custom body sections (Provider impact / Schema impact / Reach), and sister-skill names are overlaid by each consumer repo's `CLAUDE.md` and its `*-dev-process` / `*-pre-push` / `*-pr-lifecycle` sister skills. Used today by `codervisor/lean-spec`, `onsager-ai/onsager`, and `onsager-ai/duhem`. |
 
 ### How the Onsager skills compose
