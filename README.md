@@ -2,7 +2,12 @@
 
 Public **skills bundle** for [Onsager](https://github.com/onsager-ai/onsager) — the operating-procedures knowledge layer that pairs with portal's MCP server (the action layer). Together they are clause 1 of [ADR 0007](https://github.com/onsager-ai/onsager/blob/main/docs/adr/0007-tools-and-skills-as-the-public-contract.md): the **two-layer public contract** Onsager exposes to AI runtimes.
 
-This bundle also carries a small set of **repo-agnostic dev-process skills** (currently `plan-dag`) that are reusable across any GitHub-backed project — Onsager, [Duhem](https://github.com/onsager-ai/duhem), and beyond.
+> **Cross-repo dev-process skills moved to [`onsager-ai/dev-skills`](https://github.com/onsager-ai/dev-skills).**
+> `plan-dag`, `issue-spec`, `railway`, `ci-triage`, `web-testing`, and other
+> engineering-methodology skills used across Onsager, Duhem, and lean-spec
+> now live in a sibling bundle and install globally:
+> `npx skills add -g onsager-ai/dev-skills --skill '*' -a claude-code`.
+> This bundle is now exclusively the **user-facing Onsager MCP loop**.
 
 Tools are *what* you can call. Skills are *when to call which tool*, *how to sequence them*, and *what shapes the arguments expect*. Without the skills, an LLM staring at 11 tool descriptions has to guess the workflow; with them, the LLM sees a trigger phrase → tool sequence → example shape, and ships the right call on the first try.
 
@@ -17,7 +22,7 @@ npx skills add onsager-ai/onsager-skills
 To install only a subset:
 
 ```bash
-npx skills add onsager-ai/onsager-skills --skill plan-dag
+npx skills add onsager-ai/onsager-skills --skill onsager-design-workflow
 npx skills add onsager-ai/onsager-skills --skill 'onsager-*'
 ```
 
@@ -35,8 +40,6 @@ The Onsager MCP skills call the portal MCP server. You need:
 - A Personal Access Token with workspace access. Create one in the dashboard at **Settings → Tokens**.
 - Your MCP client configured to point at `<portal-url>/mcp/messages` with the PAT in the `Authorization: Bearer <token>` header.
 
-`plan-dag` has no Onsager dependency. It renders the DAG as a high-DPI PNG and sends it inline via `SendUserFile`. The renderer needs `dot` (graphviz) on PATH (`apt install graphviz`, or `brew install graphviz`) for the SVG layout step, and `node` (≥18) plus Playwright Chromium (`npm i -g playwright && npx playwright install chromium`) for the rasterisation step. PNG is the only target — earlier HTML and ASCII targets were dropped after both proved unreliable in practice (HTML doesn't render inline in chat, ASCII loses column alignment and can't carry status fills).
-
 ## Skills
 
 ### Onsager MCP loop (paired with portal's MCP server)
@@ -50,14 +53,6 @@ Each skill is a `SKILL.md` with YAML frontmatter — `name`, `description`, trig
 | [`onsager-run-workflow`](skills/onsager-run-workflow/SKILL.md) | "run this workflow", "execute the pipeline", "trigger a run" | `run_workflow`, `list_workflows`, `list_runs`, `inspect_run` |
 | [`onsager-triage-run`](skills/onsager-triage-run/SKILL.md) | "the run failed", "diagnose this", "why did it fail" | `inspect_run`, `get_stage_logs`, `propose_remediation`, `cancel_run` |
 | [`onsager-explore-artifacts`](skills/onsager-explore-artifacts/SKILL.md) | "show me the artifacts", "what did this run produce" | `get_artifact`, `list_runs` |
-
-### Reusable dev-process
-
-| Skill | Triggers (sample) | Notes |
-| --- | --- | --- |
-| [`plan-dag`](skills/plan-dag/SKILL.md) | "plan as dag", "what's blocking what", "critical path", "what's left for #N" | Renders issues/sub-issues/PRs as a high-DPI PNG dependency DAG with color-coded status and an available-next highlight. Repo-agnostic; works against any GitHub-backed tracker via the GitHub MCP tools. Scripts and fixtures encapsulated in `skills/plan-dag/`. |
-| [`issue-spec`](skills/issue-spec/SKILL.md) | "create a spec", "write a spec issue", "spec this feature", "spec this" | Creates lean-spec style GitHub issues as specs for human-AI aligned implementation. Methodology only — area taxonomies, custom body sections (Provider impact / Schema impact / Reach), and sister-skill names are overlaid by each consumer repo's `CLAUDE.md` and its `*-dev-process` / `*-pre-push` / `*-pr-lifecycle` sister skills. Used today by `codervisor/lean-spec`, `onsager-ai/onsager`, and `onsager-ai/duhem`. |
-| [`railway-devops`](skills/railway-devops/SKILL.md) | "deploy to railway", "railway logs", "why is my railway service crashing", "redeploy on railway", "set a railway env var", "railway metrics" | Debug / develop / operate apps hosted on Railway via the `railway` CLI: list projects/services/deployments, tail and filter build / deploy / HTTP logs, read metrics, inspect and set variables, `railway up` / `redeploy` / `restart` / `down`, `railway run` / `shell` / `ssh`, and `railway connect` to managed DBs. Authenticates via the `RAILWAY_TOKEN` env var (account or project-scoped). JSON-first and non-interactive by default so an agent can drive it without prompts. |
 
 ### How the Onsager skills compose
 
