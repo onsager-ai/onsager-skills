@@ -47,13 +47,11 @@ The draft document is the same canonical shape as a real workflow, minus the wor
   - `install_id` — leave as empty string (`""`); the binding step fills it in from the GitHub App install the user picks.
   - `repo_owner`, `repo_name` — also empty strings unless the user named a specific repo in prose. The binding step's repo picker writes these.
   - `label` — the GitHub label the workflow should react to (e.g. `needs-triage`).
-- `stages` — ordered list of `{ id, name, gate_kind, artifact_kind, config }` entries. `id` may be a stable string (`"stage-0"`); the dashboard regenerates ids when it canonicalises the document. `gate_kind` is kebab-case from [`onsager-portal::workflow::GateKind`](https://github.com/onsager-ai/onsager/blob/main/crates/onsager-portal/src/workflow.rs):
+- `stages` — ordered list of `{ id, name, gate_kind, config }` entries. `id` may be a stable string (`"stage-0"`); the dashboard regenerates ids when it canonicalises the document. `gate_kind` is kebab-case from [`onsager-portal::workflow::GateKind`](https://github.com/onsager-ai/onsager/blob/main/crates/onsager-portal/src/workflow.rs):
   - `agent-session` — dispatches an agent session with a prompt. `config: { "prompt": "…" }`.
   - `external-check` — pass/fail check (e.g. spec-link validation).
   - `governance` — synodic governance review.
   - `manual-approval` — parks for a human click.
-
-  `artifact_kind` is one of `Issue` / `PullRequest` / `Code` / `Document` (or a workspace-defined string in non-FTUE flows). `Issue` is the FTUE default.
 
 ### Step 3 — call `propose_workflow_draft`
 
@@ -71,14 +69,12 @@ The draft document is the same canonical shape as a real workflow, minus the wor
       "id": "stage-0",
       "name": "Triage agent",
       "gate_kind": "agent-session",
-      "artifact_kind": "Issue",
       "config": { "prompt": "Classify this issue and add labels." }
     },
     {
       "id": "stage-1",
       "name": "Governance review",
       "gate_kind": "governance",
-      "artifact_kind": "Issue",
       "config": {}
     }
   ]
@@ -113,7 +109,6 @@ If the user wants to iterate, just call `propose_workflow_draft` again with the 
       "id": "stage-0",
       "name": "Triage agent",
       "gate_kind": "agent-session",
-      "artifact_kind": "Issue",
       "config": { "prompt": "Classify this issue, add labels, and suggest an owner." }
     }
   ]
@@ -136,14 +131,12 @@ If the user wants to iterate, just call `propose_workflow_draft` again with the 
       "id": "stage-0",
       "name": "Implementer",
       "gate_kind": "agent-session",
-      "artifact_kind": "Issue",
       "config": { "prompt": "Implement the spec on a feature branch and open a PR." }
     },
     {
       "id": "stage-1",
       "name": "Manual approval",
       "gate_kind": "manual-approval",
-      "artifact_kind": "PullRequest",
       "config": {}
     }
   ]
@@ -166,7 +159,6 @@ If the user wants to iterate, just call `propose_workflow_draft` again with the 
       "id": "stage-0",
       "name": "Agent session",
       "gate_kind": "agent-session",
-      "artifact_kind": "Issue",
       "config": { "prompt": "" }
     }
   ]
