@@ -178,3 +178,9 @@ If the user wants to iterate, just call `propose_workflow_draft` again with the 
 - `onsager-run-workflow` — fire an active workflow.
 - `onsager-explore-artifacts` — inspect what a run produced.
 - `onsager-triage-run` — diagnose a stuck or failed run.
+
+## Human decisions
+
+When a concrete decision remains for a human, use the current harness's supported structured question tool, following its native instructions, tool contract and mode restrictions. Resolve tool names and mechanics through the matching harness-operations reference where available. Do not leave the decision only in a plain-text question, final response, or "Human decides" checklist. State the decision, relevant context, options and tradeoffs in the tool call; wait for an explicit answer before dependent work and reconcile it into the spec or decision record. Continue independent authorized work and do not re-ask settled decisions. If no permitted question tool is available, state that limitation and the unresolved decision, keep dependent work blocked, and use the repository's established human handoff channel. Silence, elapsed time and a recommended option are not approval.
+
+These question tools are native client capabilities, not Onsager MCP grants; do not add them to `allowed_tools` or assume they exist in every client. A question answer does not replace activation, governance or manual-approval actions required in the dashboard.
