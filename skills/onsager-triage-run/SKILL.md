@@ -110,7 +110,7 @@ If the user wants to stop the run (it's not going to recover on its own, or they
 { "artifact_id": "<artifact_id>", "reason": "manual cancel after triage — root cause: <one-line summary>" }
 ```
 
-`cancel_run` is **destructive and irreversible at the artifact level**: it sets `state = 'archived'` and emits `artifact.archived` on the `forge:<artifact_id>` stream. Confirm with the user before firing it. After cancel, the same trigger event won't re-run the workflow automatically — the user has to re-fire via `onsager-run-workflow` (if manual) or re-trigger upstream (if webhook-driven).
+`cancel_run` is **destructive and irreversible at the artifact level**: it sets `state = 'archived'` and emits `artifact.archived` on the `forge:<artifact_id>` stream. Obtain the required confirmation through the structured question tool described below before firing it. After cancel, the same trigger event won't re-run the workflow automatically — the user has to re-fire via `onsager-run-workflow` (if manual) or re-trigger upstream (if webhook-driven).
 
 If the artifact is already `archived`, `cancel_run` returns `InvalidParams: artifact already archived`. Just tell the user — no further action.
 
@@ -141,3 +141,9 @@ Prompt design bug — the agent's prompt has no exit condition. Hand off to `ons
 - `onsager-design-workflow` — when triage points at a workflow-design fix.
 - `onsager-run-workflow` — when you cancel and want to re-fire.
 - `onsager-explore-artifacts` — when you want to see what *did* land before the failure.
+
+## Human decisions
+
+When a concrete decision remains for a human, use the available structured question tool: `AskUserQuestion` in Claude Code, or `request_user_input` / `request_user_input_async` in Codex where exposed and permitted. Do not leave the decision only in a plain-text question, final response, or "Human decides" checklist. State the decision, relevant context, options and tradeoffs in the tool call; wait for an explicit answer before dependent work and reconcile it into the spec or decision record. Continue independent authorized work and do not re-ask settled decisions. If no permitted question tool is available, state that limitation and the unresolved decision, keep dependent work blocked, and use the repository's established human handoff channel. Silence, elapsed time and a recommended option are not approval.
+
+These question tools are native client capabilities, not Onsager MCP grants; do not add them to `allowed_tools` or assume they exist in every client. A question answer does not replace activation, governance or manual-approval actions required in the dashboard.
